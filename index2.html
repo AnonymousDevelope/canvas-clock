@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Clock with Music</title>
+    <style>
+        body {
+            background-color: darkgray;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #mycanvas {
+            background-color: lightgray;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="mycanvas" width="400" height="400"></canvas>
+    <audio id="backgroundMusic" src="./clock-ticking-natural-room-verb-17249.mp3" loop></audio>
+    <script>
+        const canvas = document.getElementById("mycanvas");
+        const ctx = canvas.getContext("2d");
+        const radius = canvas.width / 2;
+        ctx.translate(radius, radius); // Move the origin to the center of the canvas
+
+        // Play the background music
+        const music = document.getElementById("backgroundMusic");
+        music.volume = 1; // Set volume (0.0 to 1.0)
+        music.play();
+
+        function drawClock() {
+            drawFace(ctx, radius);
+            drawNumbers(ctx, radius);
+            drawTime(ctx, radius);
+        }
+
+        function drawFace(ctx, radius) {
+            // Draw the 3D clock face
+            const gradient = ctx.createRadialGradient(0, 0, radius * 0.6, 0, 0, radius);
+            gradient.addColorStop(0, '#e0e0e0'); // Lighter center color
+            gradient.addColorStop(1, '#a0a0a0'); // Darker edge color
+
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            
+            // Draw the clock bezel
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+            ctx.lineWidth = radius * 0.1;
+            ctx.strokeStyle = '#333';
+            ctx.stroke();
+            
+            // Draw the 3D effect for the center
+            ctx.beginPath();
+            ctx.arc(0, 0, radius * 0.1, 0, 2 * Math.PI);
+            ctx.fillStyle = '#333';
+            ctx.fill();
+        }
+
+        function drawNumbers(ctx, radius) {
+            ctx.font = `${radius * 0.15}px Arial`;
+            ctx.textBaseline = "middle";
+            ctx.textAlign = "center";
+
+            for (let num = 1; num <= 12; num++) {
+                let ang = (num * Math.PI / 6) - Math.PI / 2; // Rotate numbers -90 degrees
+                const x = radius * 0.85 * Math.cos(ang);
+                const y = radius * 0.85 * Math.sin(ang);
+                ctx.fillStyle = '#333'; // Number color
+                ctx.fillText(num.toString(), x, y);
+            }
+        }
+
+        function drawTime(ctx, radius) {
+            const now = new Date();
+            const hour = now.getHours() % 12;
+            const minute = now.getMinutes();
+            const second = now.getSeconds();
+
+            // Hour hand
+            const hourAngle = (hour * Math.PI / 6) + (minute * Math.PI / (6 * 60)) + (second * Math.PI / (360 * 60));
+            drawHand(ctx, hourAngle, radius * 0.5, radius * 0.07, '#333');
+
+            // Minute hand
+            const minuteAngle = (minute * Math.PI / 30) + (second * Math.PI / (30 * 60));
+            drawHand(ctx, minuteAngle, radius * 0.8, radius * 0.05, '#666');
+
+            // Second hand
+            const secondAngle = second * Math.PI / 30;
+            drawHand(ctx, secondAngle, radius * 0.9, radius * 0.02, '#f00');
+        }
+
+        function drawHand(ctx, angle, length, width, color) {
+            ctx.beginPath();
+            ctx.lineWidth = width;
+            ctx.lineCap = "round";
+            ctx.strokeStyle = color;
+            ctx.moveTo(0, 0);
+            ctx.rotate(angle);
+            ctx.lineTo(0, -length);
+            ctx.stroke();
+            ctx.rotate(-angle);
+        }
+
+        function updateClock() {
+            ctx.clearRect(-radius, -radius, canvas.width, canvas.height);
+            drawClock();
+            requestAnimationFrame(updateClock);
+        }
+
+        updateClock(); // Start the clock
+    </script>
+</body>
+</html>
